@@ -1,0 +1,586 @@
+{
+  "name": "updated_shotstack_workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "prompt"
+            },
+            {
+              "name": "aspect_ratio"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -2512,
+        -128
+      ],
+      "id": "2ad8a831-c7d2-4a43-bde8-41390b1e5d93",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e1b79ba2-2dbc-4ebd-84c5-63169984a489",
+              "name": "output",
+              "value": "=Input URLs: {{ $json.prompt }}\nAspect Ratio: {{ $json.aspect_ratio }}\nTask: Create a 24-second video by stitching 3 video clips (8 seconds each) and overlay background music trimmed to exactly 24 seconds.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2288,
+        -128
+      ],
+      "id": "1da0cc5c-6c8e-49ce-a5f3-8533c37d4b76",
+      "name": "Format Input"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-4o",
+        "options": {
+          "responseFormat": "json_object",
+          "maxRetries": 3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -2096,
+        112
+      ],
+      "id": "d3e45db7-682d-4800-84f4-12aaf4e25a61",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "OKXl16r8Jnur9uD1",
+          "name": "OpenRouter account 1"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"JSON Payload\": \"California\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -1664,
+        144
+      ],
+      "id": "1c675d20-baca-4597-a71c-fe2b83dbf3c2",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.output }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=# Role\nYou are an expert at creating Shotstack Edit API JSON payloads for video stitching.\n\n# Task\nThe user will provide:\n- A comma-separated string of 4 URLs: video1_url,video2_url,video3_url,music_url\n- An aspect ratio (e.g., \"9:16\")\n\nYour job is to create a Shotstack JSON payload that:\n1. Stitches 3 video clips sequentially (each is exactly 8 seconds long)\n2. **MUTES all video clips** (volume: 0) - only music should be heard\n3. Overlays the music track across the entire 24-second duration\n4. **CRITICAL**: Trims the music to exactly 24 seconds (music files are usually longer)\n5. Outputs in the specified aspect ratio\n\n# Shotstack API Structure\n\n## Timeline Tracks\nTrack 0: Video clips (stacked sequentially, MUTED)\nTrack 1: Audio/music (overlayed and trimmed)\n\n## Video Clips Format (MUTED)\n```json\n{\n  \"asset\": {\n    \"type\": \"video\",\n    \"src\": \"VIDEO_URL\",\n    \"volume\": 0\n  },\n  \"start\": 0,\n  \"length\": 8\n}\n```\n\n## Audio Clip Format (WITH TRIM)\n```json\n{\n  \"asset\": {\n    \"type\": \"audio\",\n    \"src\": \"AUDIO_URL\",\n    \"volume\": 0.6,\n    \"trim\": 0\n  },\n  \"start\": 0,\n  \"length\": 24\n}\n```\n\n**IMPORTANT**: \n- The `volume: 0` in video assets mutes the video audio\n- The `trim` parameter tells Shotstack where to start in the source audio file. Set to 0 to start from the beginning. \n- The `length` parameter (24 seconds) will automatically cut the audio at 24 seconds.\n\n## Output Format\n```json\n{\n  \"format\": \"mp4\",\n  \"resolution\": \"hd\",\n  \"aspectRatio\": \"9:16\",\n  \"fps\": 30,\n  \"quality\": \"high\"\n}\n```\n\n# Instructions\n1. Parse the comma-separated URLs:\n   - First 3 URLs = video clips (8 seconds each, MUTED)\n   - 4th URL = music track (needs to be trimmed to 24 seconds)\n2. Create video clips at start times: 0s, 8s, 16s (each 8 seconds long, volume: 0)\n3. Create audio clip:\n   - Start at 0s\n   - Length: 24 seconds (this will trim the audio)\n   - Trim: 0 (start from beginning of audio file)\n   - Volume: 0.6 (background level)\n4. Use the provided aspect ratio\n5. Output as valid JSON only (no explanations)\n\n# Complete Example Output\n```json\n{\n  \"timeline\": {\n    \"tracks\": [\n      {\n        \"clips\": [\n          {\n            \"asset\": {\n              \"type\": \"video\", \n              \"src\": \"https://example.com/video1.mp4\",\n              \"volume\": 0\n            },\n            \"start\": 0,\n            \"length\": 8\n          },\n          {\n            \"asset\": {\n              \"type\": \"video\", \n              \"src\": \"https://example.com/video2.mp4\",\n              \"volume\": 0\n            },\n            \"start\": 8,\n            \"length\": 8\n          },\n          {\n            \"asset\": {\n              \"type\": \"video\", \n              \"src\": \"https://example.com/video3.mp4\",\n              \"volume\": 0\n            },\n            \"start\": 16,\n            \"length\": 8\n          }\n        ]\n      },\n      {\n        \"clips\": [\n          {\n            \"asset\": {\n              \"type\": \"audio\",\n              \"src\": \"https://example.com/music.mp3\",\n              \"volume\": 0.6,\n              \"trim\": 0\n            },\n            \"start\": 0,\n            \"length\": 24\n          }\n        ]\n      }\n    ]\n  },\n  \"output\": {\n    \"format\": \"mp4\",\n    \"resolution\": \"hd\",\n    \"aspectRatio\": \"9:16\",\n    \"fps\": 30,\n    \"quality\": \"high\"\n  }\n}\n```\n\nIMPORTANT: \n- Each video clip is exactly 8 seconds and MUTED (volume: 0)\n- Total video duration is exactly 24 seconds\n- Music is trimmed to exactly 24 seconds using the length parameter\n- Only music audio will be heard in final video\n- Return ONLY the JSON payload, no explanations"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -2048,
+        -128
+      ],
+      "id": "ae3b0e35-6084-496f-afae-87b84bb8f67a",
+      "name": "JSON Generator",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1,
+      "position": [
+        -1808,
+        112
+      ],
+      "id": "3cebcb7a-ae82-4478-876f-d680862ed4bf",
+      "name": "Think"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.shotstack.io/edit/v1/render",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.output['JSON Payload'] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1632,
+        -128
+      ],
+      "id": "9b4f5b47-321f-47ac-8cd7-7915d34b0fa3",
+      "name": "Submit Render Request",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "LTIc4GyQAgMxmBN7",
+          "name": "Shotstack Test"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -1392,
+        -128
+      ],
+      "id": "d77cd972-461e-4b35-9a41-b3a585e398bc",
+      "name": "Wait 10s",
+      "webhookId": "1048eee9-9ade-47ec-a05b-629e6b2e38f3"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.shotstack.io/edit/v1/render/{{ $json.response.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1184,
+        -128
+      ],
+      "id": "07b54a75-d029-490f-9d96-c01d0b67877c",
+      "name": "Get Render Status",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "LTIc4GyQAgMxmBN7",
+          "name": "Shotstack Test"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "83e9b0ba-f5d0-4013-b55f-56331adcf222",
+                    "leftValue": "={{ $json.response.status }}",
+                    "rightValue": "done",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "done"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "f374ba73-11b9-4f68-b3bb-87fbacd6c5dd",
+                    "leftValue": "={{ $json.response.status }}",
+                    "rightValue": "rendering",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "rendering"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "56a13f6a-134f-4d7e-b08d-f683f625325a",
+                    "leftValue": "={{ $json.response.status }}",
+                    "rightValue": "saving",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "saving"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "9b60abfc-026c-4666-8e96-1d205db7f726",
+                    "leftValue": "={{ $json.response.status }}",
+                    "rightValue": "fetching",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "fetching"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "800fb22d-4452-4455-9d94-073d635295fa",
+                    "leftValue": "={{ $json.response.status }}",
+                    "rightValue": "preprocessing",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "preprocessing"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "c36b7d6b-a5e3-41e5-8a88-a609a010bb03",
+                    "leftValue": "={{ $json.response.status }}",
+                    "rightValue": "error",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "error"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.response.status }}",
+                    "rightValue": "failed",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "3110b21c-b429-481c-8ed7-92c40467a387"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "failed"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -976,
+        -128
+      ],
+      "id": "e4810556-dd95-4252-8260-78bbc685fc9d",
+      "name": "Check Status"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "final-url",
+              "name": "response",
+              "value": "={{ { url: $json.response.url } }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -768,
+        -240
+      ],
+      "id": "31ca0b91-0074-457f-ab35-bb8326235f66",
+      "name": "Format Output"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "error-msg",
+              "name": "error",
+              "value": "={{ $json.response.error || 'Render failed' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -768,
+        -16
+      ],
+      "id": "7040da3d-a41f-45eb-bbc2-d9c9652b4c6c",
+      "name": "Format Error"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Format Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Input": {
+      "main": [
+        [
+          {
+            "node": "JSON Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "JSON Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "JSON Generator",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JSON Generator": {
+      "main": [
+        [
+          {
+            "node": "Submit Render Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Think": {
+      "ai_tool": [
+        [
+          {
+            "node": "JSON Generator",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Submit Render Request": {
+      "main": [
+        [
+          {
+            "node": "Wait 10s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 10s": {
+      "main": [
+        [
+          {
+            "node": "Get Render Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Render Status": {
+      "main": [
+        [
+          {
+            "node": "Check Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Status": {
+      "main": [
+        [
+          {
+            "node": "Format Output",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 10s",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 10s",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 10s",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 10s",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "58b672b2-b61c-449a-8083-223b15ea679c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8e5aa95c0552a76b6f87328dfd800de4d3cc8f008434bf9076c4dfb3cb935d83"
+  },
+  "id": "yAxQ36cu90YXQLtG",
+  "tags": []
+}

@@ -1,0 +1,811 @@
+{
+  "name": "workflow_part2_webhook_stitcher",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "suno-callback",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1536,
+        -416
+      ],
+      "id": "5a91f94d-50e8-48a9-a017-f84b40a43f85",
+      "name": "Suno Callback Webhook",
+      "webhookId": "suno-callback"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "check-complete",
+              "leftValue": "={{ $json.body.data.callbackType }}",
+              "rightValue": "first",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -1328,
+        -416
+      ],
+      "id": "df60190c-afcb-46de-8dbd-785374f166f2",
+      "name": "Check If Complete"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "extract-data",
+              "name": "music_task_id",
+              "value": "={{ $json.body.data.task_id }}",
+              "type": "string"
+            },
+            {
+              "id": "extract-audio",
+              "name": "music_url",
+              "value": "={{ $json.body.data.data[0].audio_url || $json.body.data.data[1].audio_url }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1120,
+        -416
+      ],
+      "id": "bb52612a-18bb-481f-9fd1-58ba74f805b1",
+      "name": "Extract Music URL"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appP9Tan7f1mONBsR",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblxhWiBsbUGlkDXb",
+          "mode": "list"
+        },
+        "filterByFormula": "={Music Task ID}=\"{{ $json.music_task_id }}\"",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -912,
+        -416
+      ],
+      "id": "a3837216-3365-4151-b57b-66e7929da34a",
+      "name": "Find Record by Task ID",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "y7Pu8KFiSkM4TpOP",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appP9Tan7f1mONBsR",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblxhWiBsbUGlkDXb",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Music URL": "={{ $('Extract Music URL').item.json.music_url }}",
+            "ID": "={{ $json.ID }}"
+          },
+          "matchingColumns": [
+            "ID"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Done",
+                  "value": "Done"
+                },
+                {
+                  "name": "Pending",
+                  "value": "Pending"
+                },
+                {
+                  "name": "Music Generating",
+                  "value": "Music Generating"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Initial Image",
+              "displayName": "Initial Image",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Middle Image",
+              "displayName": "Middle Image",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Final Image",
+              "displayName": "Final Image",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Middle Image Prompt",
+              "displayName": "Middle Image Prompt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "First Video Prompt",
+              "displayName": "First Video Prompt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Second Video Prompt",
+              "displayName": "Second Video Prompt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Third Video Prompt",
+              "displayName": "Third Video Prompt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Final Video",
+              "displayName": "Final Video",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Music URL",
+              "displayName": "Music URL",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Video Clip 1",
+              "displayName": "Video Clip 1",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Video Clip 2",
+              "displayName": "Video Clip 2",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Video Clip 3",
+              "displayName": "Video Clip 3",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Music Task ID",
+              "displayName": "Music Task ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -704,
+        -416
+      ],
+      "id": "b18c82db-8830-4601-af4d-ab28e6344cc8",
+      "name": "Update Music URL",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "y7Pu8KFiSkM4TpOP",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the Airtable record data - fields are nested under .fields\nconst video1 = $json.fields['Video Clip 1'];\nconst video2 = $json.fields['Video Clip 2'];\nconst video3 = $json.fields['Video Clip 3'];\nconst musicUrl = $('Extract Music URL').item.json.music_url;\nconst recordId = $json.fields.ID || $json.ID;\n\n// Validate all URLs exist\nif (!video1 || !video2 || !video3 || !musicUrl) {\n  const missing = [];\n  if (!video1) missing.push('Video Clip 1');\n  if (!video2) missing.push('Video Clip 2');\n  if (!video3) missing.push('Video Clip 3');\n  if (!musicUrl) missing.push('Music URL');\n  \n  throw new Error(`Missing required URLs: ${missing.join(', ')}`);\n}\n\n// Format as comma-separated string for Shotstack\n// Format: video1,video2,video3,music\n// Each video is 8 seconds, total 24 seconds\n// Music will be automatically trimmed to 24 seconds by Shotstack\nconst allUrls = `${video1},${video2},${video3},${musicUrl}`;\n\nreturn { \n  json: { \n    prompt: allUrls, \n    aspect_ratio: '9:16', \n    record_id: recordId,\n    // Metadata for debugging\n    metadata: {\n      total_duration: 24,\n      video_count: 3,\n      video_duration_each: 8,\n      video_urls: [video1, video2, video3],\n      music_url: musicUrl,\n      music_will_be_trimmed: true\n    }\n  } \n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -496,
+        -416
+      ],
+      "id": "5f14623c-b949-48c6-a176-6c8f07110211",
+      "name": "Prepare Stitching Data"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "yAxQ36cu90YXQLtG",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/yAxQ36cu90YXQLtG",
+          "cachedResultName": "updated_shotstack_workflow"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "prompt": "={{ $json.prompt }}\n\n{{ $json.metadata.toJsonString() }}",
+            "aspect_ratio": "={{ $json.aspect_ratio }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "prompt",
+              "displayName": "prompt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "aspect_ratio",
+              "displayName": "aspect_ratio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -288,
+        -416
+      ],
+      "id": "7d6887b0-0360-4d89-8b99-4c0900499462",
+      "name": "Stitch Final Video"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appP9Tan7f1mONBsR",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblxhWiBsbUGlkDXb",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Final Video": "=[{ \"url\": \"{{ $json.response.url }}\" }]",
+            "Status": "Done",
+            "ID": "={{ $('Find Record by Task ID').item.json.ID }}"
+          },
+          "matchingColumns": [
+            "ID"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Done",
+                  "value": "Done"
+                },
+                {
+                  "name": "Pending",
+                  "value": "Pending"
+                },
+                {
+                  "name": "Music Generating",
+                  "value": "Music Generating"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Initial Image",
+              "displayName": "Initial Image",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Middle Image",
+              "displayName": "Middle Image",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Final Image",
+              "displayName": "Final Image",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Middle Image Prompt",
+              "displayName": "Middle Image Prompt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "First Video Prompt",
+              "displayName": "First Video Prompt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Second Video Prompt",
+              "displayName": "Second Video Prompt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Third Video Prompt",
+              "displayName": "Third Video Prompt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Final Video",
+              "displayName": "Final Video",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Music URL",
+              "displayName": "Music URL",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Video Clip 1",
+              "displayName": "Video Clip 1",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Video Clip 2",
+              "displayName": "Video Clip 2",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Video Clip 3",
+              "displayName": "Video Clip 3",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Music Task ID",
+              "displayName": "Music Task ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -80,
+        -416
+      ],
+      "id": "7ac26b21-7314-4277-9a6a-66ea621921cf",
+      "name": "Save Final Video",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "y7Pu8KFiSkM4TpOP",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Suno Callback Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "loopsera.app.n8n.cloud",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36 Hutool",
+            "content-length": "1558",
+            "accept": "text/html,application/json,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "accept-encoding": "gzip, br",
+            "accept-language": "zh-CN,zh;q=0.8",
+            "cache-control": "no-cache",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "47.77.232.176",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "US",
+            "cf-ray": "9c59c234e5bb7e21-SJC",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json;charset=UTF-8",
+            "pragma": "no-cache",
+            "x-forwarded-for": "47.77.232.176, 172.71.159.166",
+            "x-forwarded-host": "loopsera.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-11-cb7f6dc87-bk27x",
+            "x-is-trusted": "yes",
+            "x-real-ip": "47.77.232.176"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "code": 200,
+            "data": {
+              "callbackType": "first",
+              "data": [
+                {
+                  "audio_url": "",
+                  "createTime": 1769700450928,
+                  "id": "9717597c-1081-4943-be86-549fc787e658",
+                  "image_url": "https://musicfile.kie.ai/OTcxNzU5N2MtMTA4MS00OTQzLWJlODYtNTQ5ZmM3ODdlNjU4.jpeg",
+                  "model_name": "chirp-v4",
+                  "prompt": "",
+                  "source_image_url": "https://cdn2.suno.ai/image_9717597c-1081-4943-be86-549fc787e658.jpeg",
+                  "source_stream_audio_url": "https://audiopipe.suno.ai/?item_id=9717597c-1081-4943-be86-549fc787e658",
+                  "stream_audio_url": "https://musicfile.kie.ai/OTcxNzU5N2MtMTA4MS00OTQzLWJlODYtNTQ5ZmM3ODdlNjU4",
+                  "tags": "Modern cinematic electronic, clean and high-end",
+                  "title": "Timelapse Elegance: Kitchen Installation Sequence"
+                },
+                {
+                  "audio_url": "https://musicfile.kie.ai/OGRiOTU1NDctYzMxOS00MDI4LTg1MWItOGE0NGZiMzFlZTEw.mp3",
+                  "createTime": 1769700450928,
+                  "duration": 147.04,
+                  "id": "8db95547-c319-4028-851b-8a44fb31ee10",
+                  "image_url": "https://musicfile.kie.ai/OGRiOTU1NDctYzMxOS00MDI4LTg1MWItOGE0NGZiMzFlZTEw.jpeg",
+                  "model_name": "chirp-v4",
+                  "prompt": "",
+                  "source_audio_url": "https://cdn1.suno.ai/8db95547-c319-4028-851b-8a44fb31ee10.mp3",
+                  "source_image_url": "https://cdn2.suno.ai/image_8db95547-c319-4028-851b-8a44fb31ee10.jpeg",
+                  "source_stream_audio_url": "https://audiopipe.suno.ai/?item_id=8db95547-c319-4028-851b-8a44fb31ee10",
+                  "stream_audio_url": "https://musicfile.kie.ai/OGRiOTU1NDctYzMxOS00MDI4LTg1MWItOGE0NGZiMzFlZTEw",
+                  "tags": "Modern cinematic electronic, clean and high-end",
+                  "title": "Timelapse Elegance: Kitchen Installation Sequence"
+                }
+              ],
+              "task_id": "267d5513753f79b04e7164c61d5cfeb9"
+            },
+            "msg": "First audio generated successfully."
+          },
+          "webhookUrl": "https://loopsera.app.n8n.cloud/webhook/suno-callback",
+          "executionMode": "production"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Suno Callback Webhook": {
+      "main": [
+        [
+          {
+            "node": "Check If Complete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If Complete": {
+      "main": [
+        [
+          {
+            "node": "Extract Music URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Music URL": {
+      "main": [
+        [
+          {
+            "node": "Find Record by Task ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Record by Task ID": {
+      "main": [
+        [
+          {
+            "node": "Update Music URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Music URL": {
+      "main": [
+        [
+          {
+            "node": "Prepare Stitching Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Stitching Data": {
+      "main": [
+        [
+          {
+            "node": "Stitch Final Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stitch Final Video": {
+      "main": [
+        [
+          {
+            "node": "Save Final Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f42f8e98-01f2-4157-bafc-5eb34fd3b334",
+  "meta": {
+    "instanceId": "8e5aa95c0552a76b6f87328dfd800de4d3cc8f008434bf9076c4dfb3cb935d83"
+  },
+  "id": "bdjQbhIZJeXIQthO",
+  "tags": []
+}

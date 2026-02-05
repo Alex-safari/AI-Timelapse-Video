@@ -1,0 +1,1175 @@
+{
+  "name": "workflow_part1_generate",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1232,
+        -16
+      ],
+      "id": "e4be6b40-2166-416b-989d-9d5bb182f061",
+      "name": "When clicking 'Execute workflow'"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appP9Tan7f1mONBsR",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblxhWiBsbUGlkDXb",
+          "mode": "list"
+        },
+        "filterByFormula": "{Status}=\"Pending\"",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -1040,
+        144
+      ],
+      "id": "0dcab499-2e8a-4e1d-8556-d03e92e9840f",
+      "name": "Search records",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "y7Pu8KFiSkM4TpOP",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list"
+        },
+        "text": "=# SYSTEM ROLE: AI Construction Workflow Architect\nYou are an expert Prompt Engineer specializing in high-end construction, \narchitectural, and infrastructure timelapses. Your goal is to generate a \n\"Middle Image Prompt\" that bridges a [Start Frame] and an [End Frame].\n\n## LOGIC PARAMETERS:\n- **Phase**: Exactly 50-60% completion. This is the \"Bridge Frame.\"\n- **Physics**: Do not allow \"magic growth.\" Transformation must look physical.\n- **Goal**: Create a logical motion path for Video AI (Veo/Kling/Sora) to \n  prevent morphing and flickering.\n\n## INPUT DATA:\n- **Project Type**: [e.g., Road, Porch, Skyscraper]\n- **Start State**: [Description of Frame 1]\n- **End State**: [Description of Frame 2]\n\n## OUTPUT PROMPT STRUCTURE:\n1. **Camera Anchor**: Must specify \"Locked-off static camera\" and \"identical \n   angle to reference frames\" to ensure zero perspective drift.\n2. **The \"WIP\" Edge**: Describe a sharp \"work-in-progress\" line where \n   new materials (asphalt, wood, steel) meet the old or raw surface.\n3. **Skeletal Exposure**: Reveal internal elements that are usually \n   hidden in the final shot (e.g., rebar in a road, studs in a wall, \n   joists on a porch).\n4. **Active Staging**: Modular items (furniture, equipment, tools) should \n   be placed in \"transit\" positions—not yet in their final spots.\n5. **Lighting Buffer**: Calculate a time-of-day halfway between the Start \n   and End frames (e.g., if Start is dawn and End is dusk, specify 2 PM).\n\n## FINAL OUTPUT INSTRUCTIONS:\n- Generate a single, cohesive paragraph for use in an Image Generator.\n- Include high-fidelity keywords: \"4K,\" \"photorealistic,\" \"sharp textures.\"",
+        "imageUrls": "={{ $json['Initial Image'][0].url , $json['Final Image'][0].url }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        -800,
+        144
+      ],
+      "id": "5c7fe9f1-91cd-48e7-965c-a359a29a6d6e",
+      "name": "Generate middle image prompt",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "JZ464KgCUqqY9UZt",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "3x5sjsBUeWNBAPHx",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/3x5sjsBUeWNBAPHx",
+          "cachedResultName": "Fal.ai nanobanana2 image to image edit"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "prompt": "={{ $json.cleanedPrompt }}",
+            "imageURLs": "={{ [$('Search records').item.json['Initial Image'][0].url, $('Search records').item.json['Final Image'][0].url ]}}",
+            "aspect_ratio": "9:16"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "prompt",
+              "displayName": "prompt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "imageURLs",
+              "displayName": "imageURLs",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array"
+            },
+            {
+              "id": "aspect_ratio",
+              "displayName": "aspect_ratio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        -384,
+        144
+      ],
+      "id": "1b8fbe38-ace8-4641-abda-2dca542baa66",
+      "name": "Call 'Fal.ai nanobanana2 image to image edit'"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appP9Tan7f1mONBsR",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblxhWiBsbUGlkDXb",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Middle Image": "=[{ \"url\": \"{{ $json.images[0].url }}\" }]",
+            "Middle Image Prompt": "={{ $('Generate middle image prompt').item.json.content.parts[0].text }}",
+            "ID": "={{ $('Search records').item.json.ID }}"
+          },
+          "matchingColumns": [
+            "ID"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Done",
+                  "value": "Done"
+                },
+                {
+                  "name": "Pending",
+                  "value": "Pending"
+                },
+                {
+                  "name": "Music Generating",
+                  "value": "Music Generating"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Initial Image",
+              "displayName": "Initial Image",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Middle Image",
+              "displayName": "Middle Image",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Final Image",
+              "displayName": "Final Image",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Middle Image Prompt",
+              "displayName": "Middle Image Prompt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "First Video Prompt",
+              "displayName": "First Video Prompt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Second Video Prompt",
+              "displayName": "Second Video Prompt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Third Video Prompt",
+              "displayName": "Third Video Prompt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Final Video",
+              "displayName": "Final Video",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Music URL",
+              "displayName": "Music URL",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Video Clip 1",
+              "displayName": "Video Clip 1",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Video Clip 2",
+              "displayName": "Video Clip 2",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Video Clip 3",
+              "displayName": "Video Clip 3",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Music Task ID",
+              "displayName": "Music Task ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        -176,
+        144
+      ],
+      "id": "9c029b80-50dd-4e9e-afcb-00cd24374ca1",
+      "name": "Update Middle Image",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "y7Pu8KFiSkM4TpOP",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list"
+        },
+        "text": "=# SYSTEM ROLE: Technical Director for AI Construction Timelapses\nYou are an expert Video Prompt Engineer. Your task is to analyze three \nprovided images ([Initial State], [Mid-Transformation], and [Final Hero Shot]) \nand generate a sequence of three cohesive video prompts.\n\n## CORE DIRECTIVES:\n- **Consistent Slow Motion**: Every clip MUST feature \"slow, controlled \n  cinematic camera movement\" (e.g., slow push-in, dolly, or subtle pan) \n  to maintain premium production value.\n- **Physics**: Transitions must be mechanical and additive, avoiding \"AI \n  morphing\" or \"material melting\".\n- **Pacing**: Use \"high-speed motion blur\" for workers during construction \n  phases (Clips 1 & 2), but \"static stillness\" for the final reveal (Clip 3) \n  to emphasize the pristine finish.\n\n## VIDEO PROMPT STRUCTURE:\n1. **Camera**: Specify a slow, cinematic camera movement (push-in, dolly, \n   or pan), 4K photorealistic.\n2. **Action**: Describe the physical transformation using mechanical verbs \n   (e.g., \"bolting,\" \"rolling,\" \"snapping\").\n3. **No Characters**: Ensure the final shot is pristine and empty, \n   focusing entirely on the architecture and design.\n4. **Lighting**: Match the transition between your reference images.\n5. **SFX**: Layered, realistic audio cues.\n\n## EXAMPLE OUTPUT:\n**Clip 3: Final Cinematic Reveal**\n\"Slow cinematic camera push-in towards the center of the finished room, \n4K photorealistic. The space is pristine and empty. The construction \nis complete. The 2700K amber ceiling lights are glowing, casting warm, \nsharp shadows across the teal-drenched walls and velvet textures. \nThe camera moves with smooth, steady precision. \nSFX: Deep, soft ambient room tone, the faint hum of a quiet space, \nand the distant sound of wind. Motion: Low.\"\n\n## THE SEQUENCE LOGIC:\n- **Clip 1 (Start to Mid)**: Raw framing/base layering. Slow camera pan.\n- **Clip 2 (Mid to End)**: Finishing materials/furniture. Slow camera dolly.\n- **Clip 3 (Final Reveal)**: No characters; pristine atmosphere. Slow push-in.\n\n## OUTPUT INSTRUCTIONS:\n- Provide 3 distinct prompts in clear, descriptive paragraphs.\n- DO NOT include negative prompts.\n- Ensure each prompt includes specific SFX cues.",
+        "imageUrls": "={{ $json.fields['Initial Image'][0].url , $json.fields['Final Image'][0].url , $json.fields['Middle Image'][0].url }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        48,
+        144
+      ],
+      "id": "ba5b1e19-cb7c-42be-96e3-2911961bf0cf",
+      "name": "Generate video prompts",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "JZ464KgCUqqY9UZt",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "7109e8b4-aa3b-41a3-9559-7cdce6372099",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "OKXl16r8Jnur9uD1",
+          "name": "OpenRouter account 1"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"clip1_Prompt\": \"California\",\n\t\"clip2_Prompt\": \"California\",\n  \"clip3_Prompt\": \"California\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        432,
+        0
+      ],
+      "id": "c4510ea8-13de-45db-887d-902dbe6939e2",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "O40XQxkBF4EYgeS0",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/O40XQxkBF4EYgeS0",
+          "cachedResultName": "Kie.ai VEO3.1 fast image to video subworkflow"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "video_prompt": "={{ $json.output.clip1_Prompt }}",
+            "aspect_ratio": "9:16",
+            "imageUrls": "={{ [$('Update Middle Image').item.json.fields['Initial Image'][0].url, $('Update Middle Image').item.json.fields['Middle Image'][0].url] }}",
+            "generationType": "FIRST_AND_LAST_FRAMES_2_VIDEO"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "video_prompt",
+              "displayName": "video_prompt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "aspect_ratio",
+              "displayName": "aspect_ratio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "imageUrls",
+              "displayName": "imageUrls",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array"
+            },
+            {
+              "id": "generationType",
+              "displayName": "generationType",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        592,
+        144
+      ],
+      "id": "9068005d-afff-402e-91bc-47e422e5c613",
+      "name": "Call 'Kie.ai VEO3.1 fast image to video subworkflow'"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.content.parts[0].text }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        256,
+        144
+      ],
+      "id": "18d19b0b-22df-40bb-a04a-eb098c8538d9",
+      "name": "Format Video Prompts"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "O40XQxkBF4EYgeS0",
+          "mode": "list"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "video_prompt": "={{ $('Format Video Prompts').item.json.output.clip2_Prompt }}",
+            "aspect_ratio": "9:16",
+            "imageUrls": "={{ [$('Update Middle Image').item.json.fields['Middle Image'][0].url, $('Update Middle Image').item.json.fields['Final Image'][0].url] }}",
+            "generationType": "FIRST_AND_LAST_FRAMES_2_VIDEO"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        816,
+        144
+      ],
+      "id": "9ca55fbb-d8c2-45be-8d44-98929677d91b",
+      "name": "Call 'Kie.ai VEO3.1 fast image to video subworkflow'1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "O40XQxkBF4EYgeS0",
+          "mode": "list"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "video_prompt": "={{ $('Format Video Prompts').item.json.output.clip3_Prompt }}",
+            "aspect_ratio": "9:16",
+            "imageUrls": "={{ [$('Update Middle Image').item.json.fields['Final Image'][0].url] }}",
+            "generationType": "FIRST_AND_LAST_FRAMES_2_VIDEO"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1040,
+        144
+      ],
+      "id": "d932f1b0-091b-4210-9766-1a7db2a4310d",
+      "name": "Call 'Kie.ai VEO3.1 fast image to video subworkflow'2"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"music_prompt\": \"California\",\n  \"style\": \"California\",\n  \"music_title\": \"California\",\n  \"negativeTags\": \"California\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1424,
+        16
+      ],
+      "id": "d9ac6b51-8cc5-4000-bfeb-b0334c51e425",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=This is info for a 24 seconds video having three 8 seconds clips stitched together {{ $('Generate video prompts').item.json.content.parts[0].text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an expert AI music prompt engineer that creates detailed, production-ready prompts for AI music models (such as Suno) to generate short background tracks for TikTok, Reels, and YouTube Shorts."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        1248,
+        144
+      ],
+      "id": "e9c78b45-0c37-49ad-b437-b43338b8dc7c",
+      "name": "Music Prompt Generator"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1216,
+        16
+      ],
+      "id": "d57175df-fa89-40e9-9572-0860f80828c7",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "OKXl16r8Jnur9uD1",
+          "name": "OpenRouter account 1"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kie.ai/api/v1/generate",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "prompt",
+              "value": "={{ $json.output.music_prompt }}"
+            },
+            {
+              "name": "customMode",
+              "value": "true"
+            },
+            {
+              "name": "instrumental",
+              "value": "true"
+            },
+            {
+              "name": "model",
+              "value": "V4"
+            },
+            {
+              "name": "callBackUrl",
+              "value": "=https://loopsera.app.n8n.cloud/webhook/suno-callback"
+            },
+            {
+              "name": "style",
+              "value": "={{ $json.output.style }}"
+            },
+            {
+              "name": "title",
+              "value": "={{ $json.output.music_title }}"
+            },
+            {
+              "name": "negativeTags",
+              "value": "={{ $json.output.negativeTags }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1600,
+        144
+      ],
+      "id": "970e0f07-e334-43d1-89de-cedadab85b3e",
+      "name": "Submit Music Generation",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "ghhDmIje8kw9sST9",
+          "name": "Kie.ai"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appP9Tan7f1mONBsR",
+          "mode": "list"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblxhWiBsbUGlkDXb",
+          "mode": "list"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Video Clip 1": "={{ $('Call \\'Kie.ai VEO3.1 fast image to video subworkflow\\'').item.json.resultUrls }}",
+            "Video Clip 2": "={{ $('Call \\'Kie.ai VEO3.1 fast image to video subworkflow\\'1').item.json.resultUrls }}",
+            "Video Clip 3": "={{ $('Call \\'Kie.ai VEO3.1 fast image to video subworkflow\\'2').item.json.resultUrls }}",
+            "Music Task ID": "={{ $json.data.taskId }}",
+            "First Video Prompt": "={{ $('Format Video Prompts').item.json.output.clip1_Prompt }}",
+            "Second Video Prompt": "={{ $('Format Video Prompts').item.json.output.clip2_Prompt }}",
+            "Third Video Prompt": "={{ $('Format Video Prompts').item.json.output.clip3_Prompt }}",
+            "Status": "Music Generating",
+            "ID": "={{ $('Search records').item.json.ID }}"
+          },
+          "matchingColumns": [
+            "ID"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Done",
+                  "value": "Done"
+                },
+                {
+                  "name": "Pending",
+                  "value": "Pending"
+                },
+                {
+                  "name": "Music Generating",
+                  "value": "Music Generating"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Initial Image",
+              "displayName": "Initial Image",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Middle Image",
+              "displayName": "Middle Image",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Final Image",
+              "displayName": "Final Image",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Middle Image Prompt",
+              "displayName": "Middle Image Prompt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "First Video Prompt",
+              "displayName": "First Video Prompt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Second Video Prompt",
+              "displayName": "Second Video Prompt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Third Video Prompt",
+              "displayName": "Third Video Prompt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Final Video",
+              "displayName": "Final Video",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Music URL",
+              "displayName": "Music URL",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Video Clip 1",
+              "displayName": "Video Clip 1",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Video Clip 2",
+              "displayName": "Video Clip 2",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Video Clip 3",
+              "displayName": "Video Clip 3",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Music Task ID",
+              "displayName": "Music Task ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1808,
+        144
+      ],
+      "id": "67b1feb2-4b47-497b-adba-00abbbd5547c",
+      "name": "Save Video URLs and Music Task ID",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "y7Pu8KFiSkM4TpOP",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Clean the prompt to ensure it's JSON-safe\nconst prompt = $json.content.parts[0].text;\n\n// Escape quotes and backslashes\nconst cleanedPrompt = prompt\n  .replace(/\\\\/g, '\\\\\\\\')  // Escape backslashes first\n  .replace(/\"/g, '\\\\\"')    // Escape quotes\n  .replace(/\\n/g, ' ')     // Replace newlines with spaces\n  .replace(/\\r/g, '')      // Remove carriage returns\n  .replace(/\\t/g, ' ');    // Replace tabs with spaces\n\nreturn {\n  json: {\n    cleanedPrompt: cleanedPrompt,\n    originalData: $json\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -592,
+        144
+      ],
+      "id": "ea1fdb55-f48d-4e01-8437-c9aa32182e67",
+      "name": "Clean Prompt"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -1232,
+        144
+      ],
+      "id": "92b0dc45-bb59-4ea2-b5fe-fac72b100f17",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "content": "# AI Construction Timelapse Generator (Before → Middle → After)\n**This template was created by Alex Safari.**  \nSubscribe to my YouTube channel for more AI automation tutorials:  \n👉 https://www.youtube.com/@alexsafari1  \n\nSet up video: https://youtu.be/lYkVvQAg5l4\n\n## Overview\nThis workflow generates a realistic **AI timelapse video** from two images: an **Initial (Before)** frame and a **Final (After)** frame.\n\nInstead of forcing the video model to jump straight from “before → after” (which causes morphing/flicker), the workflow first generates a **Middle Bridge Frame** (50–60% completion). Then it writes **three cohesive video prompts**, generates **three 8-second clips**, creates a matching music bed, and stitches everything into a final 24-second timelapse.\n\n\n## The Human Process (what a person would normally do)\nIf you were doing this manually, you’d:\n1. Collect a “before” image and an “after” image.\n2. Imagine a believable halfway stage (exposed framing, tools out, unfinished edges).\n3. Write a mini director plan for the progression (Phase 1, Phase 2, final reveal).\n4. Generate clips, pick music, and edit them together.\n5. Save the output links and mark the job as complete.\n\nThis workflow automates all of it.\n\n---\n\n## Workflow Breakdown (Node-by-Node)\n\n### 1) Trigger\n- **Manual Trigger** starts the workflow (you also have an optional **Form Trigger**, currently disabled).\n\n### 2) Job Queue (Airtable)\n- **Search records** pulls rows where `{Status}=\"Pending\"` so this can run like a batch processor.\n\n**Required Airtable fields:**\n- `ID`\n- `Status` (Pending / Done)\n- `Initial Image` (attachment URL)\n- `Final Image` (attachment URL)\n- `Middle Image` (attachment URL)\n- `Middle Image Prompt` (text)\n- `First Video Prompt`, `Second Video Prompt`, `Third Video Prompt` (text)\n- `Video Clip 1`, `Video Clip 2`, `Video Clip 3` (urls)\n- `Music URL` (url)\n- `Final Video` (url)\n\nGet Airtable base here: https://airtable.com/appP9Tan7f1mONBsR/shruypLYIy5GxVVMH\n---\n\n### 3) Generate “Middle Image Prompt” (Bridge Frame)\n- **Generate middle image prompt (Gemini 2.5 Flash)** analyzes the Initial + Final images.\n- Outputs a single prompt describing the project at **50–60% completion**.\n\n**Key constraints enforced by the prompt:**\n- Locked-off static camera, identical angle to reference frames (no perspective drift)\n- A sharp “work-in-progress” edge (finished material meets raw surface)\n- Skeletal exposure (rebar/studs/joists/internal elements visible)\n- Active staging (tools/materials/furniture in transit positions)\n- Lighting buffer (time-of-day halfway between start and end)\n\n---\n\n### 4) Create the Middle Image (Image-to-Image)\n- **Call ‘Fal.ai nanobanana2 image to image edit’** (subworkflow)\n- Takes:\n  - `prompt` (from Gemini)\n  - `imageURLs` ([Initial, Final])\n  - `aspect_ratio` (9:16)\n\nOutputs:\n- `Middle Image URL`\n\n---\n\n### 5) Save Middle Image + Prompt Back to Airtable\n- **Update Middle Image**\n- Stores:\n  - `Middle Image` (attachment)\n  - `Middle Image Prompt` (text)\n  - Matches by `ID`\n\n---\n\n### 6) Generate 3 Video Prompts (Director-Style)\n- **Generate video prompts (Gemini 2.5 Flash)** analyzes:\n  - Initial frame\n  - Middle frame\n  - Final frame\n\nAnd generates 3 prompts that follow a consistent cinematic style:\n\n**Clip 1 (Start → Mid)**\n- Construction/base layering\n- High-speed motion blur workers\n- Slow cinematic camera movement\n\n**Clip 2 (Mid → End)**\n- Finishing materials / refinement\n- High-speed motion blur workers\n- Slow cinematic camera movement\n\n**Clip 3 (Final Reveal)**\n- Pristine, no workers\n- Slow cinematic push-in\n- Calm, clean atmosphere\n\nEach prompt includes realistic **SFX cues**.\n\n---\n\n### 7) Convert Prompts Into Structured Fields\n- **Format Video Prompts (Agent)** uses:\n  - **OpenRouter Chat Model**\n  - **Structured Output Parser**\n\nReturns:\n- `clip1_Prompt`\n- `clip2_Prompt`\n- `clip3_Prompt`\n\n---\n\n### 8) Generate Clip 1 (Initial + Middle)\n- **Call ‘Kie.ai VEO3.1 fast image to video subworkflow’**\n- Inputs:\n  - `video_prompt` = clip1\n  - `imageUrls` = [Initial, Middle]\n  - `generationType` = FIRST_AND_LAST_FRAMES_2_VIDEO\n  - `aspect_ratio` = 9:16\n\nOutput:\n- `Video Clip 1 URL`\n\n---\n\n### 9) Generate Clip 2 (Middle + Final)\n- **Call ‘Kie.ai VEO3.1 fast image to video subworkflow’1**\n- Inputs:\n  - `video_prompt` = clip2\n  - `imageUrls` = [Middle, Final]\n  - `generationType` = FIRST_AND_LAST_FRAMES_2_VIDEO\n  - `aspect_ratio` = 9:16\n\nOutput:\n- `Video Clip 2 URL`\n\n---\n\n### 10) Generate Clip 3 (Final Reveal)\n- **Call ‘Kie.ai VEO3.1 fast image to video subworkflow’2**\n- Inputs:\n  - `video_prompt` = clip3\n  - `imageUrls` = [Final]\n  - `generationType` = FIRST_AND_LAST_FRAMES_2_VIDEO\n  - `aspect_ratio` = 9:16\n\nOutput:\n- `Video Clip 3 URL`\n\n---\n\n### 11) Generate Music Prompt + Music\n- **Music Prompt Generator (Agent)** creates a Suno-ready prompt based on:\n  - “This is a 24 seconds video having three 8 seconds clips stitched together…”\n  - The 3 video prompts\n\n- **Generate Music (Kie.ai Suno text to music subworkflow)** generates the track.\n\nOutput:\n- `Music URL`\n\n---\n\n### 12) Save All URLs + Prompts to Airtable\n- **Update All URLs to Airtable**\n- Stores:\n  - Video Clip 1 / 2 / 3 URLs\n  - Music URL\n  - First / Second / Third Video Prompt text\n\n---\n\n### 13) Prepare Stitching Payload\n- **Prepare Stitching Payload (Code Node)**\n- Builds:\n  - `video_urls` array [clip1, clip2, clip3]\n  - `music_url`\n  - packaged payload for your stitching subworkflow\n\n---\n\n### 14) Stitch Final Video\n- **Stitch Final Video (Shotstack edit subworkflow)**\n- Combines:\n  - 3 clips + music\n- Output:\n  - `Final Video URL`\n\n---\n\n### 15) Save Final Video + Mark Done\n- **Save Final Video**\n- Updates Airtable:\n  - `Final Video` URL\n  - `Status` = Done\n\n---\n\n## ⚙️ Tech Stack\n- **n8n** – orchestration & logic\n- **Airtable** – job queue + logging\n- **Gemini 2.5 Flash** – image understanding + prompt generation\n- **Fal.ai (Nanobanana2)** – middle bridge image generation\n- **Kie.ai (Veo 3.1)** – image-to-video for 3 clips\n- **Kie.ai (Suno)** – background music generation\n- **Shotstack** – stitching clips + music into a final output\n\n---\n\n📧 **Email me directly**: contact@loopsera.com  \nFor quick questions, customisation requests, or workflow troubleshooting.\n\n🌐 **Visit my website**: https://loopsera.com  \nExplore more automation templates, services, and case studies.\n\n📞 **Book a Discovery Call**: https://cal.com/loopsera/ai-opportunity-audit \nFor businesses that need a custom AI agent built around their content or operations.\n\n🎓 **1-on-1 Coaching Session**: https://cal.com/loopsera/n8n-ai-agent-coaching-session  \nPersonalised coaching to help you build, troubleshoot, or optimise n8n AI workflows. Perfect for both beginners and advanced users. Includes live guidance and actionable tips.\n",
+        "height": 5024,
+        "width": 2000
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3472,
+        -784
+      ],
+      "typeVersion": 1,
+      "id": "fc30bc7a-5a07-4698-a741-87fcf4d6521b",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking 'Execute workflow'": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records": {
+      "main": [
+        [
+          {
+            "node": "Generate middle image prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate middle image prompt": {
+      "main": [
+        [
+          {
+            "node": "Clean Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Fal.ai nanobanana2 image to image edit'": {
+      "main": [
+        [
+          {
+            "node": "Update Middle Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Middle Image": {
+      "main": [
+        [
+          {
+            "node": "Generate video prompts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate video prompts": {
+      "main": [
+        [
+          {
+            "node": "Format Video Prompts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Format Video Prompts",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Format Video Prompts",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Kie.ai VEO3.1 fast image to video subworkflow'": {
+      "main": [
+        [
+          {
+            "node": "Call 'Kie.ai VEO3.1 fast image to video subworkflow'1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Video Prompts": {
+      "main": [
+        [
+          {
+            "node": "Call 'Kie.ai VEO3.1 fast image to video subworkflow'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Kie.ai VEO3.1 fast image to video subworkflow'1": {
+      "main": [
+        [
+          {
+            "node": "Call 'Kie.ai VEO3.1 fast image to video subworkflow'2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'Kie.ai VEO3.1 fast image to video subworkflow'2": {
+      "main": [
+        [
+          {
+            "node": "Music Prompt Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Music Prompt Generator",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Music Prompt Generator": {
+      "main": [
+        [
+          {
+            "node": "Submit Music Generation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Music Prompt Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Submit Music Generation": {
+      "main": [
+        [
+          {
+            "node": "Save Video URLs and Music Task ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean Prompt": {
+      "main": [
+        [
+          {
+            "node": "Call 'Fal.ai nanobanana2 image to image edit'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b2b27b44-c726-4925-8967-3591c046f7a2",
+  "meta": {
+    "instanceId": "8e5aa95c0552a76b6f87328dfd800de4d3cc8f008434bf9076c4dfb3cb935d83"
+  },
+  "id": "wTDHr7hxTBa1Tdkb",
+  "tags": []
+}
